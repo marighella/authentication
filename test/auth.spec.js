@@ -41,6 +41,16 @@ describe('Authentication', () => {
 
       assert.equal(user.github_token, GITHUB_TOKEN)
     })
+
+    it('should return a JWT on response body', async () => {
+      const res = await request(app())
+        .get('/?code=685342281f0d09fdd38e')
+        .send()
+      const token = res.headers['authorization'].split(' ')[1]
+
+      assert.equal(res.body.jwt, token)
+    })
+
   })
 
   describe('invalid github code', () => {
