@@ -1,18 +1,63 @@
-import test from 'ava';
-import request from 'supertest';
-import jwt from 'jsonwebtoken';
-import app from '../lib/app';
+import 'babel-polyfill'
 
-test('auth:Success', async t => {
-  t.plan(1);
-  process.env.SECRET_JWT = 'random_string';
-  const res = await request(app())
-    .get('/?code=685342281f0d09fdd38e')
-    .send();
+import assert  from 'assert'
+import request from 'supertest'
+import nock from 'nock'
+import jwt  from 'jsonwebtoken'
+import app  from '../lib/app'
 
+describe('Authentication', () => {
 
-  const token = res.headers['authorization'].split(' ')[1];
-  jwt.verify(token, process.env.SECRET_JWT)
+  beforeEach( () => {
+    process.env.SECRET_JWT = 'random_string'
+  })
 
-  t.is(res.status, 200);
-});
+  afterEach( () => {
+    nock.cleanAll()
+  })
+
+  describe('valid github code', () => {
+    const GITHUB_TOKEN = 'blablabla'
+
+    beforeEach( () => {
+      nock('https://github.com')
+        .post('/login/oauth/access_token')
+        .reply(200, `access_token=${GITHUB_TOKEN}`)
+    })
+
+    it('should return status 200', async ()=>{
+      const res = await request(app())
+        .get('/?code=685342281f0d09fdd38e')
+        .send()
+      assert.equal(res.status, 200)
+    })
+
+    it('should return a JWT valid', async () => {
+      const res = await request(app())
+        .get('/?code=685342281f0d09fdd38e')
+        .send()
+      const token = res.headers['authorization'].split(' ')[1]
+      const user = jwt.verify(token, process.env.SECRET_JWT)
+
+      assert.equal(user.github_token, GITHUB_TOKEN)
+    })
+  })
+
+  describe('invalid github code', () => {
+    const GITHUB_TOKEN = 'blablabla'
+
+    beforeEach( () => {
+      nock('https://github.com')
+        .post('/login/oauth/access_token')
+        .reply(200, `error=any message here`)
+    })
+
+    it('should return a 401', async () => {
+      const res = await request(app())
+        .get('/?code=invalid')
+        .send()
+
+      assert.equal(res.status, 401)
+    })
+  })
+})
