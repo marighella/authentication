@@ -27,14 +27,14 @@ describe('Authentication', () => {
 
     it('should return status 200', async ()=>{
       const res = await request(app())
-        .get('/?code=685342281f0d09fdd38e')
+        .get('/auth/?code=685342281f0d09fdd38e')
         .send()
       assert.equal(res.status, 200)
     })
 
     it('should return a JWT valid', async () => {
       const res = await request(app())
-        .get('/?code=685342281f0d09fdd38e')
+        .get('/auth/?code=685342281f0d09fdd38e')
         .send()
       const token = res.headers['authorization'].split(' ')[1]
       const user = jwt.verify(token, process.env.SECRET_JWT)
@@ -44,7 +44,7 @@ describe('Authentication', () => {
 
     it('should return a JWT on response body', async () => {
       const res = await request(app())
-        .get('/?code=685342281f0d09fdd38e')
+        .get('/auth/?code=685342281f0d09fdd38e')
         .send()
       const token = res.headers['authorization'].split(' ')[1]
 
@@ -64,7 +64,7 @@ describe('Authentication', () => {
 
     it('should return a 401', async () => {
       const res = await request(app())
-        .get('/?code=invalid')
+        .get('/auth/?code=invalid')
         .send()
 
       assert.equal(res.status, 401)

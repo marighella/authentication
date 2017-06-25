@@ -17,7 +17,7 @@ describe('Refresh Token', () => {
     it('should return status 200', async ()=>{
       const TOKEN = jwt.sign({ github_token: GITHUB_TOKEN }, process.env.SECRET_JWT, { expiresIn: '1d' });
       const res = await request(app())
-        .post('/refresh-token')
+        .post('/auth/refresh-token')
         .set('Authorization', `Bearer ${TOKEN}`)
         .send()
       assert.equal(res.status, 200)
@@ -35,7 +35,7 @@ describe('Refresh Token', () => {
         full_name: 'org_name/opa',
       }
       const res = await request(app())
-        .post('/refresh-token')
+        .post('/auth/refresh-token')
         .set('Authorization', `Bearer ${TOKEN}`)
         .send({
           user,
